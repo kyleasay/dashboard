@@ -550,12 +550,105 @@ input[type="date"].add-input {
 
 .save-btn.saving   { border-color: #2B83BA; color: #7fa0ff; }
 
-/* ── RESPONSIVE ─────────────────────────────────── */
+/* ── TABLET (≤900px) ─────────────────────────────── */
 @media (max-width: 900px) {
   html, body { overflow: auto; height: auto; }
   .main { grid-template-rows: unset; padding: 12px; }
   .top-row { grid-template-columns: repeat(2, 1fr); }
   .bottom-row { grid-template-columns: 1fr; }
+}
+
+/* ── MOBILE / iPHONE (≤600px) ───────────────────── */
+@media (max-width: 600px) {
+  html, body { overflow: auto; height: auto; -webkit-text-size-adjust: 100%; }
+
+  /* Header — compact, drop subtitle and date */
+  .header { padding: 11px 16px; flex-wrap: wrap; gap: 6px; }
+  .header h1 { font-size: 16px; }
+  .header p  { display: none; }
+  .header-right { display: none; }
+  .save-btn { font-size: 10px; padding: 5px 10px; }
+
+  /* Summary strip */
+  .summary-strip { padding: 6px 16px; font-size: 10px; }
+
+  /* Main grid — single column, natural height */
+  .main {
+    grid-template-rows: unset;
+    grid-template-columns: 1fr;
+    padding: 10px 12px 24px;
+    gap: 10px;
+    overflow: visible;
+  }
+
+  /* Top row — single column on phone */
+  .top-row { grid-template-columns: 1fr; gap: 8px; }
+
+  /* Domain cards */
+  .domain-card { overflow: visible; }
+  .card-body   { padding: 11px 13px 12px; }
+  .goal-input  { font-size: 14px; padding: 7px 0; }
+
+  /* Bottom row — single column, natural height */
+  .bottom-row { grid-template-columns: 1fr; gap: 10px; overflow: visible; }
+
+  /* All panels: let content set height */
+  .panel { overflow: visible; min-height: unset; }
+
+  /* Quick links: horizontal row instead of narrow vertical column */
+  .quick-links-panel {
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 14px 16px;
+    background: #fff;
+    border-radius: 11px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.07);
+    order: 99; /* push to bottom of bottom row */
+  }
+  .quick-link { width: 50px; height: 50px; }
+
+  /* Action sections — natural height, no internal scroll */
+  .action-sections  { flex: none; overflow: visible; }
+  .action-section   { overflow: visible; min-height: unset; }
+  .action-scroll    { overflow: visible; height: auto; max-height: none; }
+  .action-resize-handle { display: none; }
+
+  /* Action rows — flex instead of cramped 5-col grid */
+  .action-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .action-date { display: none; }
+  .action-row-btns .action-edit { display: none; }
+  .action-del  { opacity: 1; font-size: 15px; }
+  .action-desc { font-size: 13px; flex: 1; }
+  .action-status { font-size: 11px; padding: 5px 9px; flex-shrink: 0; }
+
+  /* Add row — flex, hide date & priority select */
+  .add-row {
+    display: flex;
+    gap: 6px;
+    padding: 8px 12px;
+  }
+  .add-row input[type="date"] { display: none; }
+  .add-row .add-sel           { display: none; }
+  .add-row .add-input { flex: 1; font-size: 14px; padding: 8px 10px; }
+  .add-confirm { padding: 8px 14px; font-size: 12px; flex-shrink: 0; }
+  .add-cancel  { flex-shrink: 0; }
+
+  /* Content ideation — natural height, no internal scroll */
+  .cc-scroll      { overflow: visible; height: auto; max-height: none; }
+  .cc-item        { padding: 10px 12px; }
+  .cc-item-idea   { font-size: 13px; }
+  .cc-drag-handle { display: none; } /* drag-to-reorder doesn't work well on touch */
+  .cc-input       { font-size: 14px; padding: 8px 10px; }
+  .cc-confirm     { padding: 8px 14px; }
+
+  /* Calendar — overflow visible, full-width popup */
+  .cal-dual-container { overflow: visible; height: auto; max-height: none; }
+  .cal-popup { width: calc(100vw - 32px); left: 16px !important; right: 16px; }
 }
 </style>
 </head>
