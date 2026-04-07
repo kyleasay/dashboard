@@ -576,13 +576,13 @@ input[type="date"].add-input {
   .main {
     grid-template-rows: unset;
     grid-template-columns: 1fr;
-    padding: 10px 12px 24px;
-    gap: 10px;
+    padding: 12px 12px 28px;
+    gap: 16px;
     overflow: visible;
   }
 
   /* Top row — single column on phone */
-  .top-row { grid-template-columns: 1fr; gap: 8px; }
+  .top-row { grid-template-columns: 1fr; gap: 16px; }
 
   /* Domain cards */
   .domain-card { overflow: visible; }
@@ -590,10 +590,15 @@ input[type="date"].add-input {
   .goal-input  { font-size: 14px; padding: 7px 0; }
 
   /* Bottom row — single column, natural height */
-  .bottom-row { grid-template-columns: 1fr; gap: 10px; overflow: visible; }
+  .bottom-row { grid-template-columns: 1fr; gap: 16px; overflow: visible; }
 
-  /* All panels: let content set height */
-  .panel { overflow: visible; min-height: unset; }
+  /* All panels: let content set height, clear card boundary */
+  .panel {
+    overflow: visible;
+    min-height: unset;
+    border: 1px solid #e2e6ea;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+  }
 
   /* Quick links: horizontal row instead of narrow vertical column */
   .quick-links-panel {
