@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kyle's Health Summary</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #faf9f7;
+      color: #1a1a1a;
+      padding: 48px 24px;
+      min-height: 100vh;
+    }
+
+    .card {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 4px;
+      padding: 56px 64px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .meta {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 28px;
+    }
+
+    .score-header {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+    }
+
+    .score-header span {
+      color: #1a1a1a;
+    }
+
+    .subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 17px;
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 40px;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid #e8e4dc;
+      margin-bottom: 36px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #999;
+      text-align: left;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #e8e4dc;
+    }
+
+    thead th:nth-child(2) { text-align: center; width: 110px; }
+    thead th:nth-child(3) { text-align: left; padding-left: 24px; }
+
+    tbody tr {
+      border-bottom: 1px solid #f0ece4;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody td {
+      padding: 18px 0;
+      font-size: 15px;
+      vertical-align: top;
+    }
+
+    .category {
+      font-weight: 600;
+      color: #1a1a1a;
+      font-size: 15px;
+    }
+
+    .score-cell {
+      text-align: center;
+    }
+
+    .score-pill {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .score-high   { background: #edf7ee; color: #2d7a36; }
+    .score-mid    { background: #fef7e6; color: #a06b00; }
+    .score-low    { background: #fdecea; color: #b83c2e; }
+    .score-na     { background: #f2f2f2; color: #888; }
+
+    .assessment {
+      padding-left: 24px;
+      color: #555;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .data-gap {
+      font-size: 11px;
+      color: #aaa;
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    .footer-note {
+      margin-top: 36px;
+      padding-top: 24px;
+      border-top: 1px solid #e8e4dc;
+      font-size: 12px;
+      color: #aaa;
+      line-height: 1.6;
+    }
+
+    .highlight-box {
+      background: #f7f4ef;
+      border-left: 3px solid #c8b89a;
+      padding: 16px 20px;
+      border-radius: 2px;
+      margin-bottom: 36px;
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .highlight-box strong { color: #1a1a1a; }
+
+    /* ===== CYCLING SECTION ===== */
+    .section-divider {
+      border: none;
+      border-top: 2px solid #e8e4dc;
+      margin: 48px 0 40px;
+    }
+
+    .race-banner {
+      background: linear-gradient(135deg, #2d3a2e 0%, #3d5c3e 100%);
+      border-radius: 6px;
+      padding: 28px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+
+    .race-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 21px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+
+    .race-date-label {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+    }
+
+    .race-countdown-nums {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .countdown-unit { text-align: center; }
+
+    .countdown-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 46px;
+      font-weight: 700;
+      color: #ABD0A4;
+      line-height: 1;
+      display: block;
+    }
+
+    .countdown-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      margin-top: 5px;
+      display: block;
+    }
+
+    .countdown-sep {
+      font-size: 32px;
+      color: rgba(255,255,255,0.15);
+      margin-top: -10px;
+    }
+
+    .cycling-section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 5px;
+    }
+
+    .cycling-section-sub {
+      font-size: 12px;
+      color: #aaa;
+      letter-spacing: 0.05em;
+      margin-bottom: 22px;
+    }
+
+    .activity-table { width: 100%; border-collapse: collapse; }
+
+    .activity-table thead th {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #bbb;
+      text-align: left;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e8e4dc;
+    }
+
+    .activity-table thead th.num { text-align: right; }
+
+    .activity-table tbody tr { border-bottom: 1px solid #f5f2ec; }
+    .activity-table tbody tr:hover { background: #faf8f5; }
+
+    .activity-table td {
+      padding: 10px 0;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .activity-table td.num   { text-align: right; color: #333; }
+    .activity-table td.date-col { color: #aaa; font-size: 11px; white-space: nowrap; padding-right: 14px; }
+    .activity-table td.name-col { font-weight: 500; color: #1a1a1a; padding-right: 10px; }
+    .activity-table td.type-col { padding-right: 14px; }
+
+    .type-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .type-mtb    { background: #edf7ee; color: #2d7a36; }
+    .type-road   { background: #e8f0fe; color: #1a56db; }
+    .type-zwift  { background: #f0eaff; color: #7c3aed; }
+    .type-indoor { background: #f2f2f2; color: #666; }
+
+    .totals-row td {
+      padding-top: 16px !important;
+      border-top: 2px solid #e8e4dc !important;
+      font-weight: 700 !important;
+      color: #1a1a1a !important;
+      font-size: 13px !important;
+      border-bottom: none !important;
+    }
+
+    .elev-note {
+      font-size: 11px;
+      color: #bbb;
+      margin-top: 20px;
+      font-style: italic;
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .meta-row .meta { margin-bottom: 0; }
+
+    .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #555;
+      background: #f2ede4;
+      border: 1px solid #e0d8cc;
+      border-radius: 20px;
+      padding: 6px 16px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      text-transform: uppercase;
+    }
+
+    .refresh-btn:hover { background: #e8e0d4; color: #1a1a1a; }
+    .refresh-btn.copied { background: #edf7ee; color: #2d7a36; border-color: #ABD0A4; }
+
+    .refresh-btn svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+
+  <div class="meta-row">
+    <div class="meta">Garmin Health Summary &nbsp;·&nbsp; April 6, 2026</div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+      <button class="refresh-btn" onclick="copyRefreshPrompt(this)" title="Copy prompt to clipboard, then paste into Claude">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        Refresh Data
+      </button>
+      <a href="Kyle Dashboard.html" style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;color:#aaa;text-decoration:none;display:inline-flex;align-items:center;gap:5px;" onmouseover="this.style.color='#1a1a1a'" onmouseout="this.style.color='#aaa'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Kyle Dashboard
+      </a>
+    </div>
+  </div>
+
+  <div class="score-header">Overall Health Score: 7.7 / 10</div>
+  <div class="subtitle">Strong cardiovascular base and excellent sleep — <br>activity consistency is the primary lever to pull</div>
+
+  <hr>
+
+  <div class="highlight-box">
+    <strong>Data note:</strong> Watch wear has been inconsistent over the past ~3 weeks, with 12 days of missing or near-zero data. Scores for activity and recovery are based on available days. Body composition excluded — no scale data logged.
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Score</th>
+        <th>Assessment</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td class="category">Cardiovascular Fitness</td>
+        <td class="score-cell"><span class="score-pill score-high">9 / 10</span></td>
+        <td class="assessment">
+          Resting HR of <strong>40 bpm</strong> — elite-level cardiovascular efficiency. 7-day avg resting HR is 41 bpm. This is a standout metric.
+        </td>
+      </tr>
+
+      <tr>
+        <td class="category">Activity Level</td>
+        <td class="score-cell"><span class="score-pill score-mid">5 / 10</span></td>
+        <td class="assessment">
+          Recent step counts trending up — <strong>6,362</strong> (Apr 4) and <strong>6,975</strong> (Apr 5). Still below goal on many days, but improving. Gaps in wear data remain.
+          <div class="data-gap">Inconsistent wear limits accuracy of this score</div>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="category">Recovery</td>
+        <td class="score-cell"><span class="score-pill score-high">7.5 / 10</span></td>
+        <td class="assessment">
+          HRV last night: <strong>81ms</strong> — within your balanced baseline (73–89ms). Sleep score: <strong>93/100</strong>, 8.32 hrs, zero awakenings. HRV has been consistently in the balanced range recently.
+        </td>
+      </tr>
+
+      <tr>
+        <td class="category">Sleep Quality</td>
+        <td class="score-cell"><span class="score-pill score-high">9 / 10</span></td>
+        <td class="assessment">
+          Last night scored <strong>93 — Excellent</strong>. Strong deep sleep (30.3%) and REM (29.1%), zero awakenings. Sleep continues to be a clear strength.
+        </td>
+      </tr>
+
+      <tr>
+        <td class="category">Respiratory Health</td>
+        <td class="score-cell"><span class="score-pill score-high">8 / 10</span></td>
+        <td class="assessment">
+          Waking avg: <strong>13 breaths/min</strong>. Sleep avg: 14 breaths/min. Overnight low: 7 breaths/min — all within healthy range. No anomalies detected.
+        </td>
+      </tr>
+
+      <tr>
+        <td class="category">Body Composition</td>
+        <td class="score-cell"><span class="score-pill score-na">N / A</span></td>
+        <td class="assessment">
+          No weigh-in or scale data synced in the past 30 days. Connect a Garmin Index scale or log manually to track this metric.
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <div class="footer-note">
+    Data sourced from Garmin Connect via MCP · Generated April 6, 2026 · Scores reflect 30-day historical data where available. This summary is informational and not a substitute for medical advice.
+  </div>
+
+  <!-- ===== CYCLING SECTION ===== -->
+  <hr class="section-divider">
+
+  <div class="race-banner">
+    <div>
+      <div class="race-name">Park City Point 2 Point Race</div>
+      <div class="race-date-label">September 6, 2026</div>
+    </div>
+    <div class="race-countdown-nums">
+      <div class="countdown-unit">
+        <span class="countdown-number" id="cd-weeks">—</span>
+        <span class="countdown-label">Weeks</span>
+      </div>
+      <div class="countdown-sep">·</div>
+      <div class="countdown-unit">
+        <span class="countdown-number" id="cd-days">—</span>
+        <span class="countdown-label">Days</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="cycling-section-title">Cycling Activity Log</div>
+  <div class="cycling-section-sub">Since October 2025 &nbsp;·&nbsp; 37 rides logged</div>
+
+  <table class="activity-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Activity</th>
+        <th>Type</th>
+        <th class="num">Miles</th>
+        <th class="num">Elev (ft)</th>
+        <th class="num">Duration</th>
+        <th class="num">Avg HR</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="date-col">Apr 5</td><td class="name-col">Zwift – EF Pro Cycling Red Day</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">7.88</td><td class="num">—</td><td class="num">0:45:11</td><td class="num">123</td></tr>
+      <tr><td class="date-col">Mar 28</td><td class="name-col">Lehi Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">12.50</td><td class="num">2,522</td><td class="num">1:38:41</td><td class="num">153</td></tr>
+      <tr><td class="date-col">Mar 27</td><td class="name-col">Lehi Road Cycling</td><td class="type-col"><span class="type-badge type-road">Road</span></td><td class="num">18.55</td><td class="num">775</td><td class="num">1:10:35</td><td class="num">154</td></tr>
+      <tr><td class="date-col">Mar 24</td><td class="name-col">Lehi Road Cycling</td><td class="type-col"><span class="type-badge type-road">Road</span></td><td class="num">27.40</td><td class="num">531</td><td class="num">1:41:45</td><td class="num">157</td></tr>
+      <tr><td class="date-col">Mar 21</td><td class="name-col">Draper Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">3.95</td><td class="num">635</td><td class="num">0:40:58</td><td class="num">113</td></tr>
+      <tr><td class="date-col">Mar 19</td><td class="name-col">Lehi Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">13.27</td><td class="num">2,603</td><td class="num">1:38:01</td><td class="num">159</td></tr>
+      <tr><td class="date-col">Mar 18</td><td class="name-col">Lehi Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">13.18</td><td class="num">2,665</td><td class="num">1:39:26</td><td class="num">158</td></tr>
+      <tr><td class="date-col">Mar 13</td><td class="name-col">Lehi Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">11.61</td><td class="num">2,516</td><td class="num">1:29:08</td><td class="num">165</td></tr>
+      <tr><td class="date-col">Mar 9</td><td class="name-col">Lehi Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">9.53</td><td class="num">1,925</td><td class="num">1:11:20</td><td class="num">162</td></tr>
+      <tr><td class="date-col">Mar 4</td><td class="name-col">Lehi Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">4.64</td><td class="num">755</td><td class="num">1:07:30</td><td class="num">133</td></tr>
+      <tr><td class="date-col">Mar 2</td><td class="name-col">Zwift – Ven-10 in France</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">6.29</td><td class="num">—</td><td class="num">1:30:16</td><td class="num">—</td></tr>
+      <tr><td class="date-col">Mar 1</td><td class="name-col">Zwift – R.G.V. in France</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">15.66</td><td class="num">—</td><td class="num">0:51:28</td><td class="num">136</td></tr>
+      <tr><td class="date-col">Feb 27</td><td class="name-col">Lehi Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">11.17</td><td class="num">1,974</td><td class="num">1:40:31</td><td class="num">156</td></tr>
+      <tr><td class="date-col">Feb 25</td><td class="name-col">Zwift – Recovery Spin</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">11.76</td><td class="num">—</td><td class="num">0:48:13</td><td class="num">120</td></tr>
+      <tr><td class="date-col">Feb 14</td><td class="name-col">Zwift – Spinfinity Ultra</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">22.15</td><td class="num">—</td><td class="num">1:20:16</td><td class="num">124</td></tr>
+      <tr><td class="date-col">Feb 13</td><td class="name-col">Zwift – London Calling</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">19.50</td><td class="num">—</td><td class="num">1:09:53</td><td class="num">128</td></tr>
+      <tr><td class="date-col">Feb 6</td><td class="name-col">Lehi Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">4.77</td><td class="num">771</td><td class="num">0:38:33</td><td class="num">161</td></tr>
+      <tr><td class="date-col">Jan 30</td><td class="name-col">Zwift – Watts the Limit</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">18.53</td><td class="num">—</td><td class="num">1:01:05</td><td class="num">127</td></tr>
+      <tr><td class="date-col">Jan 25</td><td class="name-col">Zwift – 2015 Worlds Course</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">10.47</td><td class="num">—</td><td class="num">0:40:24</td><td class="num">126</td></tr>
+      <tr><td class="date-col">Jan 19</td><td class="name-col">Zwift – Green to Screen</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">17.93</td><td class="num">—</td><td class="num">1:02:51</td><td class="num">126</td></tr>
+      <tr><td class="date-col">Jan 17</td><td class="name-col">Zwift – Coast to Coast</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">15.10</td><td class="num">—</td><td class="num">0:53:08</td><td class="num">126</td></tr>
+      <tr><td class="date-col">Jan 14</td><td class="name-col">Zwift – Richmond Rollercoaster</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">10.66</td><td class="num">—</td><td class="num">0:40:21</td><td class="num">125</td></tr>
+      <tr><td class="date-col">Jan 13</td><td class="name-col">Zwift – Petite Douleur</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">8.65</td><td class="num">—</td><td class="num">0:30:32</td><td class="num">142</td></tr>
+      <tr><td class="date-col">Jan 10</td><td class="name-col">Zwift – Everything Bagel</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">20.02</td><td class="num">—</td><td class="num">1:18:04</td><td class="num">160</td></tr>
+      <tr><td class="date-col">Jan 7</td><td class="name-col">Zwift – 2018 Worlds Short Lap</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">15.22</td><td class="num">—</td><td class="num">1:08:30</td><td class="num">149</td></tr>
+      <tr><td class="date-col">Jan 3</td><td class="name-col">Zwift – Greatest London Loop</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">16.19</td><td class="num">—</td><td class="num">1:01:30</td><td class="num">155</td></tr>
+      <tr><td class="date-col">Dec 31 '25</td><td class="name-col">Lehi Road Cycling</td><td class="type-col"><span class="type-badge type-road">Road</span></td><td class="num">20.24</td><td class="num">2,009</td><td class="num">1:34:23</td><td class="num">156</td></tr>
+      <tr><td class="date-col">Dec 28 '25</td><td class="name-col">Zwift – No Sleep Till Brooklyn</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">20.60</td><td class="num">—</td><td class="num">1:05:32</td><td class="num">149</td></tr>
+      <tr><td class="date-col">Dec 27 '25</td><td class="name-col">Indoor Cycling</td><td class="type-col"><span class="type-badge type-indoor">Indoor</span></td><td class="num">—</td><td class="num">—</td><td class="num">0:34:10</td><td class="num">158</td></tr>
+      <tr><td class="date-col">Dec 27 '25</td><td class="name-col">Richmond Virtual Cycling</td><td class="type-col"><span class="type-badge type-zwift">Zwift</span></td><td class="num">10.44</td><td class="num">—</td><td class="num">0:35:14</td><td class="num">—</td></tr>
+      <tr><td class="date-col">Dec 26 '25</td><td class="name-col">Indoor Cycling</td><td class="type-col"><span class="type-badge type-indoor">Indoor</span></td><td class="num">11.14</td><td class="num">—</td><td class="num">0:45:00</td><td class="num">152</td></tr>
+      <tr><td class="date-col">Dec 16 '25</td><td class="name-col">Lehi Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">15.66</td><td class="num">2,280</td><td class="num">2:01:04</td><td class="num">163</td></tr>
+      <tr><td class="date-col">Dec 13 '25</td><td class="name-col">Lehi Mountain Biking</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">7.04</td><td class="num">1,909</td><td class="num">1:01:14</td><td class="num">157</td></tr>
+      <tr><td class="date-col">Nov 24 '25</td><td class="name-col">Lehi's Dream</td><td class="type-col"><span class="type-badge type-mtb">MTB</span></td><td class="num">5.83</td><td class="num">1,607</td><td class="num">1:03:08</td><td class="num">157</td></tr>
+      <tr><td class="date-col">Oct 31 '25</td><td class="name-col">Lehi Road Cycling</td><td class="type-col"><span class="type-badge type-road">Road</span></td><td class="num">5.06</td><td class="num">516</td><td class="num">0:25:23</td><td class="num">153</td></tr>
+      <tr><td class="date-col">Oct 25 '25</td><td class="name-col">American Fork Road Cycling</td><td class="type-col"><span class="type-badge type-road">Road</span></td><td class="num">82.25</td><td class="num">1,134</td><td class="num">5:26:13</td><td class="num">152</td></tr>
+      <tr><td class="date-col">Oct 18 '25</td><td class="name-col">Lehi Road Cycling</td><td class="type-col"><span class="type-badge type-road">Road</span></td><td class="num">15.01</td><td class="num">501</td><td class="num">1:00:28</td><td class="num">137</td></tr>
+      <tr class="totals-row">
+        <td colspan="3"><strong>Totals &nbsp;·&nbsp; 37 Rides</strong></td>
+        <td class="num">539.8 mi</td>
+        <td class="num">27,629 ft</td>
+        <td class="num">44h 50m</td>
+        <td class="num">145 bpm</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="elev-note">Elevation shown for outdoor rides only (MTB &amp; Road). Zwift and Indoor sessions marked "—". Two HR readings marked "—" indicate sensor drop.</div>
+
+</div>
+<script>
+  function updateCountdown() {
+    const race = new Date('2026-09-06T00:00:00');
+    const now = new Date();
+    const diff = Math.max(0, race - now);
+    const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const weeks = Math.floor(totalDays / 7);
+    const days = totalDays % 7;
+    document.getElementById('cd-weeks').textContent = weeks;
+    document.getElementById('cd-days').textContent = days;
+  }
+  updateCountdown();
+
+  function copyRefreshPrompt(btn) {
+    const prompt = "Please refresh my Health Summary dashboard with the latest Garmin data and regenerate the Kyle Health Summary.html file in my Kyle Dashboard folder. This includes: (1) refreshing all health scores with the latest 30-day Garmin data, and (2) fetching all cycling activities since October 2025 with updated miles, duration, avg HR, and elevation gain per ride, and updating the totals row.";
+    navigator.clipboard.writeText(prompt).then(function() {
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!`;
+      setTimeout(function() {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Refresh Data`;
+      }, 2500);
+    });
+  }
+</script>
+</body>
+</html>

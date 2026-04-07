@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kyle | Finances Dashboard</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root { --accent: #FDAE61; --accent-light: #fef8ec; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; font-size: 14px; }
+.header { background: #1a1a2e; color: #fff; padding: 18px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.header-left h1 { font-size: 19px; font-weight: 700; letter-spacing: 0.3px; }
+.header-left p  { font-size: 12px; color: #9ba4b5; margin-top: 3px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.header-date { font-size: 12px; color: #9ba4b5; }
+.back-btn { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.18); padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: background 0.15s; white-space: nowrap; }
+.back-btn:hover { background: rgba(255,255,255,0.18); }
+.save-status-btn {
+  padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.18); white-space: nowrap; cursor: pointer;
+}
+.save-status-btn.unlinked { background: rgba(255,255,255,0.08); color: #9ba4b5; }
+.save-status-btn.linked   { background: rgba(253,174,97,0.25); color: #ffd09e; border-color: rgba(253,174,97,0.4); cursor: default; }
+.summary-bar { display: flex; gap: 14px; padding: 16px 32px; background: #fff; border-bottom: 1px solid #e2e6ea; flex-wrap: wrap; align-items: center; }
+.stat-card { display: flex; flex-direction: column; align-items: center; padding: 10px 22px; border-radius: 8px; min-width: 80px; }
+.stat-card .num   { font-size: 26px; font-weight: 700; line-height: 1; }
+.stat-card .label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; margin-top: 4px; }
+.stat-card.s-total   { background: #eef0f8; color: #1a1a2e; }
+.stat-card.s-open    { background: #fff8e6; color: #b07c00; }
+.stat-card.s-overdue { background: #fde8e8; color: #c0392b; }
+.stat-card.s-blocked { background: #fde8e8; color: #8b2020; }
+.stat-card.s-done    { background: #e6f9f0; color: #1a7a4a; }
+.summary-spacer { flex: 1; }
+.global-add-btn { background: var(--accent); color: #fff; border: none; padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity 0.15s; }
+.global-add-btn:hover { opacity: 0.88; }
+.add-section-btn { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; }
+.add-section-btn:hover { background: var(--accent-light); }
+.filter-bar { display: flex; gap: 10px; padding: 12px 32px; background: #fff; border-bottom: 1px solid #e2e6ea; align-items: center; flex-wrap: wrap; }
+.filter-bar label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.4px; }
+.filter-bar select, .filter-bar input[type="text"] { font-size: 12.5px; padding: 5px 10px; border: 1px solid #d0d5dd; border-radius: 6px; background: #fff; color: #1a1a2e; outline: none; cursor: pointer; }
+.filter-bar select:focus { border-color: var(--accent); }
+.filter-bar input[type="text"] { min-width: 180px; }
+.filter-sep { width: 1px; background: #e2e6ea; height: 20px; margin: 0 4px; }
+.content { padding: 24px 32px 60px; }
+.section { margin-bottom: 32px; }
+.section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.section-title-wrap { display: flex; align-items: center; gap: 8px; flex: 1; }
+.section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #666; cursor: pointer; padding: 2px 4px; border-radius: 4px; transition: background 0.12s; }
+.section-title:hover { background: #e8eaed; color: #333; }
+.section-title-input { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #333; border: 1.5px solid var(--accent); border-radius: 4px; padding: 2px 6px; outline: none; display: none; background: #fff; min-width: 120px; }
+.section-badge { background: #e2e6ea; color: #666; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; }
+.section-add-btn { background: transparent; color: #999; border: none; font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 10px; border-radius: 6px; display: flex; align-items: center; gap: 4px; transition: color 0.12s, background 0.12s; margin-left: auto; }
+.section-add-btn:hover { color: var(--accent); background: var(--accent-light); }
+.section-del-btn { background: transparent; color: #ccc; border: none; font-size: 13px; cursor: pointer; padding: 4px 6px; border-radius: 4px; transition: color 0.12s, background 0.12s; }
+.section-del-btn:hover { color: #e74c3c; background: #fde8e8; }
+.task-table { width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
+.task-table thead th { background: #f7f8fa; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px; color: #888; padding: 9px 14px; text-align: left; border-bottom: 1px solid #e8eaed; }
+.task-table tbody tr { border-bottom: 1px solid #f0f2f5; transition: background 0.1s; }
+.task-table tbody tr:last-child { border-bottom: none; }
+.task-table tbody tr:hover { background: #fffaf5; }
+.task-table td { padding: 11px 14px; vertical-align: middle; }
+.task-desc-cell { max-width: 380px; }
+.task-desc { color: #1a1a2e; line-height: 1.45; font-size: 13.5px; }
+.task-sub  { font-size: 11.5px; color: #999; margin-top: 3px; font-style: italic; line-height: 1.4; }
+.task-table tbody tr.done-row { opacity: 0.45; }
+.task-table tbody tr.done-row .task-desc { text-decoration: line-through; color: #aaa; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.dot-high { background: #e74c3c; } .dot-med { background: #f39c12; } .dot-low { background: #27ae60; }
+.owner-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.due { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.due-overdue { color: #c0392b; } .due-today { color: #c0392b; } .due-soon { color: #b07c00; } .due-future { color: #2c7a4d; } .due-tbd { color: #bbb; font-weight: 400; font-style: italic; } .due-ongoing { color: #888; font-weight: 400; font-style: italic; }
+.status-select { font-size: 11.5px; font-weight: 700; padding: 4px 8px; border-radius: 6px; border: none; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; width: 108px; text-align: center; }
+.status-select.pending    { background: #fff8e6; color: #b07c00; }
+.status-select.inprogress { background: #e6f0ff; color: #1a4db0; }
+.status-select.complete   { background: #e6f9f0; color: #1a7a4a; }
+.status-select.blocked    { background: #fde8e8; color: #c0392b; }
+.del-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 15px; padding: 4px 6px; border-radius: 4px; transition: color 0.15s, background 0.15s; line-height: 1; }
+.del-btn:hover { color: #e74c3c; background: #fde8e8; }
+.edit-btn { background: none; border: none; color: #bbb; cursor: pointer; font-size: 13px; padding: 4px 6px; border-radius: 4px; transition: color 0.15s, background 0.15s; line-height: 1; }
+.edit-btn:hover { color: #2B83BA; background: #e6f0ff; }
+.empty-state { text-align: center; padding: 40px 24px; color: #aaa; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.empty-state .empty-icon { font-size: 32px; margin-bottom: 10px; }
+.empty-state p { font-size: 13px; color: #bbb; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 14px; width: 520px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 12px 48px rgba(0,0,0,0.22); }
+.modal-header { padding: 20px 24px 16px; border-bottom: 1px solid #f0f2f5; display: flex; align-items: center; justify-content: space-between; }
+.modal-header h2 { font-size: 16px; font-weight: 700; }
+.modal-close { background: none; border: none; font-size: 20px; color: #aaa; cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 4px; }
+.modal-close:hover { background: #f0f2f5; color: #555; }
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.form-row { display: flex; flex-direction: column; gap: 5px; }
+.form-row label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #888; }
+.form-row input, .form-row textarea, .form-row select { padding: 9px 12px; border: 1.5px solid #e0e3e8; border-radius: 8px; font-size: 14px; outline: none; font-family: inherit; transition: border-color 0.15s; background: #fff; color: #1a1a2e; }
+.form-row input:focus, .form-row textarea:focus, .form-row select:focus { border-color: var(--accent); }
+.form-row textarea { resize: vertical; min-height: 70px; }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.modal-footer { padding: 14px 24px 20px; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #f0f2f5; }
+.btn-cancel { padding: 9px 20px; border: 1.5px solid #ddd; background: #fff; color: #666; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.btn-cancel:hover { background: #f5f5f5; }
+.btn-save { padding: 9px 22px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+.btn-save:hover { opacity: 0.88; }
+.save-indicator { position: fixed; bottom: 18px; right: 22px; background: #1a1a2e; color: #fff; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+.save-indicator.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Finances</h1>
+    <p>Budget, savings, investments, and financial health</p>
+  </div>
+  <div class="header-right">
+    <span class="header-date" id="headerDate"></span>
+    <button class="save-status-btn unlinked" id="saveStatusBtn" onclick="linkFile()">🔗 Link File</button>
+    <a href="../Kyle Dashboard/Kyle Dashboard.html" class="back-btn">← Kyle Dashboard</a>
+  </div>
+</div>
+
+<div class="summary-bar">
+  <div class="stat-card s-total"><span class="num" id="statTotal">0</span><span class="label">Total</span></div>
+  <div class="stat-card s-open"><span class="num" id="statOpen">0</span><span class="label">Open</span></div>
+  <div class="stat-card s-overdue"><span class="num" id="statOverdue">0</span><span class="label">Overdue</span></div>
+  <div class="stat-card s-blocked"><span class="num" id="statBlocked">0</span><span class="label">Blocked</span></div>
+  <div class="stat-card s-done"><span class="num" id="statDone">0</span><span class="label">Done</span></div>
+  <div class="summary-spacer"></div>
+  <button class="add-section-btn" onclick="openAddSection()">+ Add Section</button>
+  <button class="global-add-btn" onclick="openAddTask(null)">+ Add Task</button>
+</div>
+
+<div class="filter-bar">
+  <label>Filter:</label>
+  <select id="filterStatus" onchange="applyFilters()">
+    <option value="">All Statuses</option>
+    <option value="pending">Pending</option>
+    <option value="inprogress">In Progress</option>
+    <option value="blocked">Blocked</option>
+    <option value="complete">Complete</option>
+  </select>
+  <select id="filterPriority" onchange="applyFilters()">
+    <option value="">All Priorities</option>
+    <option value="high">High</option>
+    <option value="med">Medium</option>
+    <option value="low">Low</option>
+  </select>
+  <div class="filter-sep"></div>
+  <label>Search:</label>
+  <input type="text" id="filterSearch" placeholder="Search tasks…" oninput="applyFilters()">
+</div>
+
+<div class="content" id="sectionsContainer"></div>
+
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Task</h2>
+      <button class="modal-close" onclick="closeTaskModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Task Description *</label><input type="text" id="fDesc" placeholder="What needs to be done?"></div>
+      <div class="form-row"><label>Notes / Details</label><textarea id="fSub" placeholder="Additional context, links, notes…"></textarea></div>
+      <div class="form-row"><label>Section</label><select id="fSection"></select></div>
+      <div class="form-row-2">
+        <div class="form-row"><label>Priority</label>
+          <select id="fPriority"><option value="high">High</option><option value="med" selected>Medium</option><option value="low">Low</option></select>
+        </div>
+        <div class="form-row"><label>Status</label>
+          <select id="fStatus"><option value="pending" selected>Pending</option><option value="inprogress">In Progress</option><option value="blocked">Blocked</option><option value="complete">Complete</option></select>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-row"><label>Owner</label><input type="text" id="fOwner" placeholder="e.g. Kyle, Holly"></div>
+        <div class="form-row"><label>Due Date</label><input type="date" id="fDue"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeTaskModal()">Cancel</button>
+      <button class="btn-save" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sectionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Add Section</h2>
+      <button class="modal-close" onclick="closeSectionModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row"><label>Section Name *</label><input type="text" id="newSectionName" placeholder="e.g. Retirement"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeSectionModal()">Cancel</button>
+      <button class="btn-save" onclick="saveNewSection()">Add Section</button>
+    </div>
+  </div>
+</div>
+
+<div class="save-indicator" id="saveIndicator">✓ Saved</div>
+
+<script>
+const STORAGE_KEY    = 'kyle_finances_v1';
+const DB_NAME        = 'kyle-finances-dashboard';
+const EXPECTED_FNAME = 'Kyle Finances Dashboard.html';
+
+const DEFAULT_SECTIONS = [
+  { id: 'budget',     name: 'Monthly Actions and Budget' },
+  { id: 'savings',    name: 'Debt / Savings / Investments' },
+  { id: 'insurance',  name: 'Insurance / Credit Rating / Other Important Documents' },
+];
+
+let data = { sections: [], tasks: {} };
+let fileHandle = null, saveTimer = null, dbInstance = null;
+let editingTaskId = null, editingSectionId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  updateHeaderDate();
+  await openDB();
+  fileHandle = await getHandleFromDB();
+  if (fileHandle && fileHandle.name !== EXPECTED_FNAME) {
+    console.warn(`Wrong file linked (${fileHandle.name}). Clearing.`);
+    fileHandle = null;
+    saveHandleToDB(null);
+  }
+  loadData();
+  renderAll();
+  updateSaveStatus(!!fileHandle);
+});
+
+function updateHeaderDate() {
+  const d = new Date();
+  document.getElementById('headerDate').textContent =
+    d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+}
+
+function openDB() {
+  return new Promise(res => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('handles', { keyPath: 'id' });
+    req.onsuccess = e => { dbInstance = e.target.result; res(); };
+    req.onerror   = () => res();
+  });
+}
+function getHandleFromDB() {
+  return new Promise(res => {
+    if (!dbInstance) return res(null);
+    try {
+      const tx = dbInstance.transaction('handles', 'readonly');
+      const req = tx.objectStore('handles').get('main');
+      req.onsuccess = e => res(e.target.result?.handle || null);
+      req.onerror = () => res(null);
+    } catch(e) { res(null); }
+  });
+}
+function saveHandleToDB(handle) {
+  if (!dbInstance) return;
+  try { const tx = dbInstance.transaction('handles','readwrite'); tx.objectStore('handles').put({ id:'main', handle }); } catch(e) {}
+}
+
+function loadData() {
+  const embedded = window.__DASH_DATA__;
+  if (embedded && embedded.sections) { data = embedded; try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {} return; }
+  try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) { data = JSON.parse(raw); return; } } catch(e) {}
+  data = { sections: DEFAULT_SECTIONS.map(s => ({ ...s })), tasks: {} };
+  DEFAULT_SECTIONS.forEach(s => { data.tasks[s.id] = []; });
+}
+
+function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(persistData, 600); }
+function persistData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+  if (fileHandle) writeToFile();
+  showSaveIndicator();
+}
+
+async function writeToFile() {
+  if (!fileHandle) return;
+  try {
+    const perm = await fileHandle.queryPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') {
+      const req = await fileHandle.requestPermission({ mode: 'readwrite' });
+      if (req !== 'granted') { fileHandle = null; updateSaveStatus(false); return; }
+    }
+    const file = await fileHandle.getFile();
+    let html = await file.text();
+    const marker = '/*__DASH_DATA__*/';
+    const replacement = `${marker}${JSON.stringify(data)}${marker}`;
+    html = html.replace(new RegExp(`\\/\\*__DASH_DATA__\\*\\/[\\s\\S]*?\\/\\*__DASH_DATA__\\*\\/`), replacement);
+    const writable = await fileHandle.createWritable();
+    await writable.write(html); await writable.close();
+    updateSaveStatus(true);
+  } catch(e) { console.error('Autosave failed:', e); fileHandle = null; updateSaveStatus(false); }
+}
+
+async function linkFile() {
+  if (!('showOpenFilePicker' in window)) { alert('File System Access API not supported. Use Chrome or Edge.'); return; }
+  try {
+    const [handle] = await window.showOpenFilePicker({
+      types: [{ description: 'HTML Dashboard', accept: { 'text/html': ['.html'] } }], multiple: false
+    });
+    let access = await handle.queryPermission({ mode: 'readwrite' });
+    if (access !== 'granted') access = await handle.requestPermission({ mode: 'readwrite' });
+    if (access !== 'granted') return;
+    fileHandle = handle; saveHandleToDB(fileHandle); await writeToFile();
+  } catch(e) {}
+}
+
+function updateSaveStatus(linked) {
+  const btn = document.getElementById('saveStatusBtn'); if (!btn) return;
+  if (linked) {
+    btn.textContent = `✓ Saving → ${fileHandle.name}`;
+    btn.className = 'save-status-btn linked';
+    btn.title = 'Click to re-link a different file';
+    btn.onclick = linkFile;
+  } else {
+    btn.textContent = '🔗 Link File';
+    btn.className = 'save-status-btn unlinked';
+    btn.title = `Click to link ${EXPECTED_FNAME} for autosave`;
+    btn.onclick = linkFile;
+  }
+}
+
+function showSaveIndicator() { const el = document.getElementById('saveIndicator'); el.classList.add('show'); setTimeout(() => el.classList.remove('show'), 1800); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function parseDue(val) { if (!val || val==='TBD'||val==='Ongoing') return null; const d=new Date(val+'T00:00:00'); return isNaN(d)?null:d; }
+function dueMeta(val) {
+  if (!val) return { label:'TBD', cls:'due-tbd' };
+  if (val==='Ongoing') return { label:'Ongoing', cls:'due-ongoing' };
+  const d=parseDue(val); if (!d) return { label:val, cls:'due-tbd' };
+  const today=new Date(); today.setHours(0,0,0,0);
+  const cmp=new Date(d); cmp.setHours(0,0,0,0);
+  const diff=Math.round((cmp-today)/86400000);
+  const label=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  if (diff<0) return {label,cls:'due-overdue'}; if (diff===0) return {label:'Today',cls:'due-today'}; if (diff<=7) return {label,cls:'due-soon'}; return {label,cls:'due-future'};
+}
+function ownerStyle(owner) {
+  if (!owner) return '';
+  const colors=[['#dbeafe','#1e40af'],['#dcfce7','#166534'],['#fef3c7','#92400e'],['#fce7f3','#9d174d'],['#ede9fe','#5b21b6'],['#e0f2fe','#075985']];
+  let hash=0; for(let i=0;i<owner.length;i++) hash=owner.charCodeAt(i)+((hash<<5)-hash);
+  const [bg,fg]=colors[Math.abs(hash)%colors.length]; return `background:${bg};color:${fg};`;
+}
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderAll() {
+  updateStats();
+  const container = document.getElementById('sectionsContainer');
+  const filterStatus   = document.getElementById('filterStatus').value;
+  const filterPriority = document.getElementById('filterPriority').value;
+  const filterSearch   = document.getElementById('filterSearch').value.toLowerCase();
+  container.innerHTML = '';
+  if (!data.sections || data.sections.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">💰</div><p>No sections yet. Add a section to get started.</p></div>`; return;
+  }
+  data.sections.forEach(section => {
+    const allTasks = (data.tasks[section.id]||[]);
+    let tasks = allTasks;
+    if (filterStatus)   tasks = tasks.filter(t => t.status===filterStatus);
+    if (filterPriority) tasks = tasks.filter(t => t.priority===filterPriority);
+    if (filterSearch)   tasks = tasks.filter(t => (t.desc||'').toLowerCase().includes(filterSearch)||(t.sub||'').toLowerCase().includes(filterSearch));
+    const secEl = document.createElement('div');
+    secEl.className = 'section'; secEl.dataset.sectionId = section.id;
+    let tableHTML = '';
+    if (tasks.length === 0) {
+      tableHTML = `<div class="empty-state"><div class="empty-icon">✅</div><p>No tasks here. <strong>Add one above.</strong></p></div>`;
+    } else {
+      const rows = tasks.map(t => {
+        const dm=dueMeta(t.due); const dotCls=t.priority==='high'?'dot-high':t.priority==='low'?'dot-low':'dot-med';
+        return `<tr class="${t.status==='complete'?'done-row':''}" data-tid="${t.id}">
+          <td><span class="dot ${dotCls}"></span></td>
+          <td class="task-desc-cell"><div class="task-desc">${escHtml(t.desc)}</div>${t.sub?`<div class="task-sub">${escHtml(t.sub)}</div>`:''}</td>
+          <td>${t.owner?`<span class="owner-badge" style="${ownerStyle(t.owner)}">${escHtml(t.owner)}</span>`:''}</td>
+          <td><span class="due ${dm.cls}">${dm.label}</span></td>
+          <td><select class="status-select ${t.status}" onchange="changeStatus('${section.id}','${t.id}',this.value)">
+            <option value="pending" ${t.status==='pending'?'selected':''}>Pending</option>
+            <option value="inprogress" ${t.status==='inprogress'?'selected':''}>In Progress</option>
+            <option value="blocked" ${t.status==='blocked'?'selected':''}>Blocked</option>
+            <option value="complete" ${t.status==='complete'?'selected':''}>Complete</option>
+          </select></td>
+          <td style="white-space:nowrap"><button class="edit-btn" onclick="openEditTask('${section.id}','${t.id}')" title="Edit task">✎</button><button class="del-btn" onclick="deleteTask('${section.id}','${t.id}')" title="Delete">×</button></td>
+        </tr>`;
+      }).join('');
+      tableHTML = `<table class="task-table"><thead><tr><th style="width:28px"></th><th>Task</th><th style="width:120px">Owner</th><th style="width:90px">Due</th><th style="width:120px">Status</th><th style="width:36px"></th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+    secEl.innerHTML = `
+      <div class="section-header">
+        <div class="section-title-wrap">
+          <span class="section-title" onclick="startEditSectionName('${section.id}',this)" title="Click to rename">${escHtml(section.name)}</span>
+          <input class="section-title-input" id="input_${section.id}" type="text"
+            onblur="finishEditSectionName('${section.id}',this)"
+            onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape'){this.value='';this.blur();}">
+          <span class="section-badge">${allTasks.filter(t=>t.status!=='complete').length} open</span>
+        </div>
+        <button class="section-add-btn" onclick="openAddTask('${section.id}')">+ Add Task</button>
+        <button class="section-del-btn" onclick="deleteSection('${section.id}')">🗑</button>
+      </div>${tableHTML}`;
+    container.appendChild(secEl);
+  });
+}
+
+function updateStats() {
+  if (!data.sections) return;
+  let total=0,open=0,overdue=0,blocked=0,done=0;
+  const today=new Date(); today.setHours(0,0,0,0);
+  data.sections.forEach(s=>{(data.tasks[s.id]||[]).forEach(t=>{total++;if(t.status==='complete'){done++;return;}open++;if(t.status==='blocked')blocked++;const d=parseDue(t.due);if(d){const c=new Date(d);c.setHours(0,0,0,0);if(c<today)overdue++;}});});
+  document.getElementById('statTotal').textContent=total; document.getElementById('statOpen').textContent=open;
+  document.getElementById('statOverdue').textContent=overdue; document.getElementById('statBlocked').textContent=blocked;
+  document.getElementById('statDone').textContent=done;
+}
+
+function applyFilters() { renderAll(); }
+
+function openAddTask(sectionId) {
+  editingTaskId=null; editingSectionId=null;
+  document.getElementById('modalTitle').textContent='Add Task';
+  ['fDesc','fSub','fOwner'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fDue').value=''; document.getElementById('fPriority').value='med'; document.getElementById('fStatus').value='pending';
+  populateSectionSelect(sectionId);
+  document.getElementById('taskModal').classList.add('open');
+  setTimeout(()=>document.getElementById('fDesc').focus(),50);
+}
+function openEditTask(sectionId, taskId) {
+  const task=(data.tasks[sectionId]||[]).find(t=>t.id===taskId);
+  if (!task) return;
+  editingTaskId=taskId; editingSectionId=sectionId;
+  document.getElementById('modalTitle').textContent='Edit Task';
+  document.getElementById('fDesc').value=task.desc||'';
+  document.getElementById('fSub').value=task.sub||'';
+  document.getElementById('fOwner').value=task.owner||'';
+  document.getElementById('fDue').value=task.due||'';
+  document.getElementById('fPriority').value=task.priority||'med';
+  document.getElementById('fStatus').value=task.status||'pending';
+  populateSectionSelect(sectionId);
+  document.getElementById('taskModal').classList.add('open');
+  setTimeout(()=>document.getElementById('fDesc').focus(),50);
+}
+function populateSectionSelect(selectedId) {
+  const sel=document.getElementById('fSection'); sel.innerHTML='';
+  data.sections.forEach(s=>{const opt=document.createElement('option');opt.value=s.id;opt.textContent=s.name;if(s.id===selectedId)opt.selected=true;sel.appendChild(opt);});
+  if (!selectedId && data.sections.length>0) sel.value=data.sections[0].id;
+}
+function closeTaskModal() { document.getElementById('taskModal').classList.remove('open'); }
+function saveTask() {
+  const desc=document.getElementById('fDesc').value.trim();
+  if (!desc){document.getElementById('fDesc').focus();return;}
+  const sectionId=document.getElementById('fSection').value;
+  const task={id:editingTaskId||uid(),desc,sub:document.getElementById('fSub').value.trim(),owner:document.getElementById('fOwner').value.trim(),due:document.getElementById('fDue').value||'',priority:document.getElementById('fPriority').value,status:document.getElementById('fStatus').value};
+  if (!data.tasks[sectionId]) data.tasks[sectionId]=[];
+  if (editingTaskId) {
+    if (editingSectionId && editingSectionId!==sectionId) {
+      data.tasks[editingSectionId]=(data.tasks[editingSectionId]||[]).filter(t=>t.id!==editingTaskId);
+      data.tasks[sectionId].push(task);
+    } else {
+      const idx=data.tasks[sectionId].findIndex(t=>t.id===editingTaskId);
+      if (idx>-1) data.tasks[sectionId][idx]=task;
+    }
+  } else { data.tasks[sectionId].push(task); }
+  closeTaskModal(); renderAll(); scheduleSave();
+}
+function changeStatus(sectionId,taskId,newStatus) { const t=(data.tasks[sectionId]||[]).find(t=>t.id===taskId); if(t){t.status=newStatus;renderAll();scheduleSave();} }
+function deleteTask(sectionId,taskId) { data.tasks[sectionId]=(data.tasks[sectionId]||[]).filter(t=>t.id!==taskId); renderAll();scheduleSave(); }
+function startEditSectionName(sectionId,titleEl) { const section=data.sections.find(s=>s.id===sectionId); if(!section)return; const input=document.getElementById('input_'+sectionId); titleEl.style.display='none'; input.style.display='block'; input.value=section.name; input.focus(); input.select(); }
+function finishEditSectionName(sectionId,inputEl) { const newName=inputEl.value.trim(); const titleEl=inputEl.previousElementSibling; inputEl.style.display='none'; if(titleEl)titleEl.style.display=''; if(newName){const section=data.sections.find(s=>s.id===sectionId);if(section){section.name=newName;renderAll();scheduleSave();}} }
+function openAddSection() { document.getElementById('newSectionName').value=''; document.getElementById('sectionModal').classList.add('open'); setTimeout(()=>document.getElementById('newSectionName').focus(),50); }
+function closeSectionModal() { document.getElementById('sectionModal').classList.remove('open'); }
+function saveNewSection() { const name=document.getElementById('newSectionName').value.trim(); if(!name){document.getElementById('newSectionName').focus();return;} const id=name.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'')+'_'+Date.now().toString(36); data.sections.push({id,name});data.tasks[id]=[]; closeSectionModal();renderAll();scheduleSave(); }
+function deleteSection(sectionId) { const section=data.sections.find(s=>s.id===sectionId); const name=section?section.name:'this section'; const taskCount=(data.tasks[sectionId]||[]).length; if(!confirm(taskCount>0?`Delete "${name}"? This will remove ${taskCount} task(s).`:`Delete section "${name}"?`))return; data.sections=data.sections.filter(s=>s.id!==sectionId);delete data.tasks[sectionId];renderAll();scheduleSave(); }
+</script>
+<script>window.__DASH_DATA__ = /*__DASH_DATA__*/null/*__DASH_DATA__*/;</script>
+</body></html>
