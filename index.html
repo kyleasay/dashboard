@@ -54,7 +54,7 @@ body {
 .main {
   flex: 1; min-height: 0;
   display: grid;
-  grid-template-rows: 4fr 7fr;
+  grid-template-rows: minmax(0, 4fr) minmax(0, 7fr);
   gap: 12px;
   padding: 14px 24px 16px;
 }
@@ -213,8 +213,8 @@ body {
 .panel-add-btn:hover { background: #2B83BA; color: #fff; }
 
 /* ── ACTION ITEMS ───────────────────────────────── */
-.action-sections { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.action-section  { min-height: 60px; display: flex; flex-direction: column; overflow: hidden; }
+.action-sections { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.action-section  { flex: 1; min-height: 60px; display: flex; flex-direction: column; overflow: hidden; }
 .action-resize-handle {
   flex-shrink: 0; height: 7px; cursor: ns-resize;
   display: flex; align-items: center; justify-content: center;
