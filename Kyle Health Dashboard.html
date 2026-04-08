@@ -252,6 +252,92 @@ body {
   opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999;
 }
 .save-indicator.show { opacity: 1; }
+
+/* ── MOBILE / iPHONE (≤600px) ───────────────────────────────── */
+@media (max-width: 600px) {
+  /* Header */
+  .header { padding: 11px 16px; flex-wrap: wrap; gap: 8px; }
+  .header-left h1 { font-size: 16px; }
+  .header-left p  { display: none; }
+  .header-date    { display: none; }
+  .back-btn { padding: 6px 12px; font-size: 11px; }
+  .save-status-btn { font-size: 10px; padding: 5px 10px; }
+
+  /* Summary bar — horizontal scroll */
+  .summary-bar { padding: 10px 12px; gap: 8px; overflow-x: auto; flex-wrap: nowrap; }
+  .stat-card { padding: 8px 14px; min-width: 64px; }
+  .stat-card .num { font-size: 20px; }
+  .global-add-btn { white-space: nowrap; flex-shrink: 0; padding: 8px 14px; font-size: 12px; }
+
+  /* Filter bar */
+  .filter-bar { padding: 8px 12px; gap: 6px; }
+  .filter-bar input[type="text"] { min-width: unset; width: 100%; }
+  .filter-sep { display: none; }
+
+  /* Content area */
+  .content { padding: 14px 12px 48px; }
+  .section { margin-bottom: 20px; }
+  .section-header { flex-wrap: wrap; gap: 6px; }
+
+  /* ── TASK TABLE → CARD LAYOUT ── */
+  /* Hide the thead */
+  .task-table thead { display: none; }
+
+  /* Each row becomes a card */
+  .task-table,
+  .task-table tbody,
+  .task-table tbody tr { display: block; width: 100%; }
+
+  .task-table tbody tr {
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #eff1f5;
+    margin-bottom: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .task-table tbody tr.done-row { opacity: 0.45; }
+
+  .task-table td {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 3px 0;
+    border: none;
+    font-size: 13px;
+  }
+
+  /* Description cell — full width, top of card */
+  .task-desc-cell {
+    max-width: unset;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f5f6f8;
+    margin-bottom: 4px;
+  }
+  .task-desc { font-size: 13.5px; }
+
+  /* Hide owner and due date columns on mobile to save space */
+  .task-table td:nth-child(3),
+  .task-table td:nth-child(4) { display: none; }
+
+  /* Status and actions row — flex inline */
+  .task-table td:nth-child(5) { display: inline-flex; }
+  .task-table td:nth-child(6) { display: inline-flex; margin-left: auto; }
+
+  .status-select { width: auto; min-width: 100px; font-size: 12px; padding: 5px 8px; }
+  .del-btn, .edit-btn { font-size: 16px; padding: 5px 8px; }
+
+  /* Add section button */
+  .add-section-btn { padding: 8px 14px; font-size: 12px; width: 100%; justify-content: center; }
+
+  /* Modal — full screen on mobile */
+  .modal { width: 100vw; max-width: 100vw; border-radius: 14px 14px 0 0; margin-top: auto; }
+  .modal-overlay { align-items: flex-end; }
+  .modal-body { padding: 16px; gap: 12px; }
+  .form-row-2 { grid-template-columns: 1fr; }
+  .form-row input, .form-row textarea, .form-row select { font-size: 16px; }
+}
+
 </style>
 </head>
 <body>
