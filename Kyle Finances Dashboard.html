@@ -2,6 +2,7 @@
 <html lang="en"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <title>Kyle | Finances Dashboard</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -200,6 +201,54 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-s
 
 <script>
 const STORAGE_KEY    = 'kyle_finances_v1';
+// ── SUPABASE CLOUD SYNC ───────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://bjvebrppzemzgehbervv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqdmVicnBwemVtemdlaGJlcnZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1MDI1NzIsImV4cCI6MjA5MTA3ODU3Mn0.1UwEPeMzKUJP1Zg04OJx06cJv6wfNTPX_BITEgTiVq0';
+let _sb = null, _sbTimer = null;
+
+async function _sbInit() {
+  try { _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
+}
+
+function _sbSave() {
+  clearTimeout(_sbTimer);
+  _sbTimer = setTimeout(async () => {
+    if (!_sb) return;
+    _sbStatus('☁ Syncing…', 'linked');
+    try {
+      await _sb.from('dashboard_kv').upsert({ key: STORAGE_KEY, value: data }, { onConflict: 'key' });
+      _sbStatus('✓ Synced', 'linked');
+    } catch(e) { _sbStatus('⚠ Sync Error', 'unlinked'); }
+  }, 900);
+}
+
+async function _sbLoad() {
+  if (!_sb) return;
+  _sbStatus('☁ Connecting…', 'linked');
+  try {
+    const { data: row, error } = await _sb.from('dashboard_kv').select('value').eq('key', STORAGE_KEY).maybeSingle();
+    if (row?.value) {
+      data = row.value;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      renderAll();
+      _sbStatus('✓ Synced', 'linked');
+    } else {
+      await _sb.from('dashboard_kv').upsert({ key: STORAGE_KEY, value: data }, { onConflict: 'key' });
+      _sbStatus('✓ Synced', 'linked');
+    }
+  } catch(e) { _sbStatus('⚠ Sync Error', 'unlinked'); }
+}
+
+function _sbStatus(text, cls) {
+  const b = document.getElementById('saveStatusBtn');
+  if (b) { b.textContent = text; b.className = 'save-status-btn ' + cls; b.onclick = null; }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await _sbInit();
+  _sbLoad();
+});
+// ─────────────────────────────────────────────────────────────────────────────
 const DB_NAME        = 'kyle-finances-dashboard';
 const EXPECTED_FNAME = 'Kyle Finances Dashboard.html';
 
@@ -265,7 +314,8 @@ function loadData() {
   DEFAULT_SECTIONS.forEach(s => { data.tasks[s.id] = []; });
 }
 
-function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(persistData, 600); }
+function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(persistData, 600);   _sbSave();
+}
 function persistData() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
   if (fileHandle) writeToFile();
