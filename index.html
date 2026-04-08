@@ -529,8 +529,12 @@ input[type="date"].add-input {
 .cc-status.in-progress:hover { background: #c8deff; }
 .cc-status.done        { background: #f0f7ef; color: #1a7a4a; }
 .cc-status.done:hover  { background: #d8edda; }
+.cc-status.published   { background: #e8f4fd; color: #0077b5; }
+.cc-status.published:hover { background: #cce5f6; }
 .cc-item.cc-done .cc-item-idea { text-decoration: line-through; color: #aaa; }
 .cc-item.cc-done { opacity: 0.55; }
+.cc-item.cc-published { opacity: 0.7; }
+.cc-pub-date { font-size: 10px; font-weight: 600; color: #0077b5; background: #e8f4fd; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
 .cc-form {
   padding: 8px 10px 10px; border-top: 1px solid #f0f2f5;
   display: flex; flex-direction: column; gap: 5px; flex-shrink: 0;
@@ -850,6 +854,7 @@ input[type="date"].add-input {
         <input class="cc-input" id="cc-idea" placeholder="Content idea or topic…" onkeydown="ccFormKey(event)">
         <input class="cc-input" type="date" id="cc-date">
         <input class="cc-input" id="cc-link" placeholder="Link to article or source (optional)" onkeydown="ccFormKey(event)">
+        <input class="cc-input" type="date" id="cc-pub-date" title="Published date (leave blank if not yet published)">
         <div class="cc-form-btns">
           <button class="cc-cancel" onclick="ccHideForm()">Cancel</button>
           <button class="cc-confirm" onclick="ccConfirmAdd()">Add</button>
@@ -1408,8 +1413,8 @@ function saveContentItems() {
   scheduleSave();
 }
 
-const CC_STATUS_CYCLE = { 'not-started': 'in-progress', 'in-progress': 'done', 'done': 'not-started' };
-const CC_STATUS_LABEL = { 'not-started': 'Not Started', 'in-progress': 'In Progress', 'done': '✓ Done' };
+const CC_STATUS_CYCLE = { 'not-started': 'in-progress', 'in-progress': 'done', 'done': 'published', 'published': 'not-started' };
+const CC_STATUS_LABEL = { 'not-started': 'Not Started', 'in-progress': 'In Progress', 'done': '✓ Done', 'published': '🔗 Published' };
 
 let ccDragId     = null;
 let ccDragOverId = null;
@@ -1419,37 +1424,44 @@ function renderContentCalendar() {
   const list  = document.getElementById('cc-list');
   const badge = document.getElementById('cc-count');
   if (!list) return;
-  const activeCount = contentItems.filter(c => c.status !== 'done').length;
+  const activeCount = contentItems.filter(c => c.status !== 'done' && c.status !== 'published').length;
   badge.textContent = activeCount;
   if (contentItems.length === 0) {
     list.innerHTML = `<div class="cc-empty">No content planned yet.<br>Hit + Add to schedule your first idea.</div>`;
     return;
   }
-  // Active items keep their array order (user-dragged priority); done items sink to bottom
-  const active = contentItems.filter(c => c.status !== 'done');
-  const done   = contentItems.filter(c => c.status === 'done');
-  const ordered = [...active, ...done];
+  // Active → done → published (published always at bottom)
+  const active    = contentItems.filter(c => c.status !== 'done' && c.status !== 'published');
+  const done      = contentItems.filter(c => c.status === 'done');
+  const published = contentItems.filter(c => c.status === 'published');
+  const ordered   = [...active, ...done, ...published];
 
   list.innerHTML = ordered.map((item, idx) => {
-    const isDone = item.status === 'done';
-    const num = isDone ? '' : `<span class="cc-num">${idx + 1}</span>`;
+    const isDone      = item.status === 'done';
+    const isPublished = item.status === 'published';
+    const isSunk      = isDone || isPublished;
+    const num = !isSunk ? `<span class="cc-num">${idx + 1}</span>` : '';
     const dateLabel = item.date
       ? new Date(item.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : '';
+    const pubDateLabel = isPublished && item.publishedDate
+      ? '📅 ' + new Date(item.publishedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       : '';
     const linkHTML = item.link
       ? `<a class="cc-link" href="${esc(item.link)}" target="_blank" title="${esc(item.link)}">🔗 ${esc(item.link.replace(/^https?:\/\//, '').split('/')[0])}</a>`
       : '';
     const statusCls = item.status || 'not-started';
-    const dragAttrs = !isDone
+    const dragAttrs = !isSunk
       ? `draggable="true" ondragstart="ccDragStart(event,'${item.id}')" ondragover="ccDragOver(event,'${item.id}')" ondragleave="ccDragLeave(event)" ondrop="ccDrop(event,'${item.id}')" ondragend="ccDragEnd()"`
       : '';
-    return `<div class="cc-item${isDone ? ' cc-done' : ''}" data-id="${item.id}" ${dragAttrs}>
-      ${!isDone ? `<span class="cc-drag-handle" title="Drag to reprioritize">⠿</span>` : '<span style="width:14px;flex-shrink:0"></span>'}
+    return `<div class="cc-item${isDone ? ' cc-done' : ''}${isPublished ? ' cc-published' : ''}" data-id="${item.id}" ${dragAttrs}>
+      ${!isSunk ? `<span class="cc-drag-handle" title="Drag to reprioritize">⠿</span>` : '<span style="width:14px;flex-shrink:0"></span>'}
       ${num}
       <div class="cc-item-body">
         <div class="cc-item-idea">${esc(item.idea)}</div>
         <div class="cc-item-meta">
           ${dateLabel ? `<span class="cc-date-badge">${dateLabel}</span>` : ''}
+          ${pubDateLabel ? `<span class="cc-pub-date">${pubDateLabel}</span>` : ''}
           ${linkHTML}
         </div>
       </div>
@@ -1462,7 +1474,13 @@ function renderContentCalendar() {
 
 function ccCycleStatus(id) {
   const item = contentItems.find(c => c.id === id);
-  if (item) { item.status = CC_STATUS_CYCLE[item.status || 'not-started']; saveContentItems(); renderContentCalendar(); }
+  if (item) {
+    item.status = CC_STATUS_CYCLE[item.status || 'not-started'];
+    if (item.status === 'published' && !item.publishedDate) {
+      item.publishedDate = new Date().toISOString().split('T')[0];
+    }
+    saveContentItems(); renderContentCalendar();
+  }
 }
 
 // ── Drag-and-drop (active items only) ────────────────────────────────────────
@@ -1518,6 +1536,7 @@ function ccEditItem(id) {
   document.getElementById('cc-idea').value = item.idea || '';
   document.getElementById('cc-date').value = item.date || '';
   document.getElementById('cc-link').value = item.link || '';
+  document.getElementById('cc-pub-date').value = item.publishedDate || '';
   document.getElementById('cc-form').classList.remove('hidden');
   document.getElementById('cc-idea').focus();
   document.getElementById('cc-idea').select();
@@ -1529,6 +1548,7 @@ function ccHideForm() {
   document.getElementById('cc-idea').value = '';
   document.getElementById('cc-date').value = '';
   document.getElementById('cc-link').value = '';
+  document.getElementById('cc-pub-date').value = '';
 }
 
 function ccFormKey(e) {
@@ -1541,9 +1561,9 @@ function ccConfirmAdd() {
   if (!idea) { document.getElementById('cc-idea').focus(); return; }
   if (ccEditingId) {
     const item = contentItems.find(c => c.id === ccEditingId);
-    if (item) { item.idea = idea; item.date = document.getElementById('cc-date').value || ''; item.link = document.getElementById('cc-link').value.trim(); }
+    if (item) { item.idea = idea; item.date = document.getElementById('cc-date').value || ''; item.link = document.getElementById('cc-link').value.trim(); item.publishedDate = document.getElementById('cc-pub-date').value || ''; }
   } else {
-    contentItems.push({ id: uid(), idea, date: document.getElementById('cc-date').value || '', link: document.getElementById('cc-link').value.trim(), status: 'not-started' });
+    contentItems.push({ id: uid(), idea, date: document.getElementById('cc-date').value || '', link: document.getElementById('cc-link').value.trim(), status: 'not-started', publishedDate: document.getElementById('cc-pub-date').value || '' });
   }
   saveContentItems();
   renderContentCalendar();
