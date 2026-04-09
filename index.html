@@ -983,7 +983,11 @@ async function initSupabaseSync() {
       await pushEmbeddedToSupabase();
     } else {
       for (const row of data) {
-        if (row.value !== null) localStorage.setItem(row.key, JSON.stringify(row.value));
+        if (row.value !== null) {
+          // Don't overwrite local data with empty arrays from Supabase
+          const isEmpty = Array.isArray(row.value) && row.value.length === 0;
+          if (!isEmpty) localStorage.setItem(row.key, JSON.stringify(row.value));
+        }
       }
     }
     // Re-render with fresh cloud data
