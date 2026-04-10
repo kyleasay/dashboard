@@ -984,9 +984,13 @@ async function initSupabaseSync() {
     } else {
       for (const row of data) {
         if (row.value !== null) {
-          // Don't overwrite local data with empty arrays from Supabase
-          const isEmpty = Array.isArray(row.value) && row.value.length === 0;
-          if (!isEmpty) localStorage.setItem(row.key, JSON.stringify(row.value));
+          // Don't overwrite local data with empty/blank values from Supabase
+          const isEmptyArray  = Array.isArray(row.value) && row.value.length === 0;
+          const isBlankGoals  = Array.isArray(row.value) && row.value.length > 0 && row.value.every(v => !v || v === '');
+          const isEmptyObj    = !Array.isArray(row.value) && typeof row.value === 'object' && Object.keys(row.value).length === 0;
+          if (!isEmptyArray && !isBlankGoals && !isEmptyObj) {
+            localStorage.setItem(row.key, JSON.stringify(row.value));
+          }
         }
       }
     }
@@ -1051,8 +1055,12 @@ function loadTaskSummaries() {
 function collectHubData() {
   const goals = {};
   ['professional','health','finances','family'].forEach(domain => {
-    try { goals[domain] = JSON.parse(localStorage.getItem('hub_goals_' + domain)) || ['','','','']; }
-    catch(e) { goals[domain] = ['','','','']; }
+    try {
+      const g = JSON.parse(localStorage.getItem('hub_goals_' + domain));
+      // Only use goals if they have at least one non-empty entry
+      goals[domain] = (Array.isArray(g) && g.some(v => v && v.trim())) ? g : null;
+    }
+    catch(e) { goals[domain] = null; }
   });
   let workActions = [], personalActions = [], calEvData = {};
   try { workActions     = JSON.parse(localStorage.getItem('hub_action_work'))     || []; } catch(e) {}
@@ -1075,15 +1083,15 @@ async function saveToSupabase() {
   try {
     const d = collectHubData();
     const rows = [
-      { key: 'hub_goals_professional', value: d.goals.professional },
-      { key: 'hub_goals_health',       value: d.goals.health       },
-      { key: 'hub_goals_finances',     value: d.goals.finances     },
-      { key: 'hub_goals_family',       value: d.goals.family       },
+      d.goals.professional && { key: 'hub_goals_professional', value: d.goals.professional },
+      d.goals.health       && { key: 'hub_goals_health',       value: d.goals.health       },
+      d.goals.finances     && { key: 'hub_goals_finances',     value: d.goals.finances     },
+      d.goals.family       && { key: 'hub_goals_family',       value: d.goals.family       },
       { key: 'hub_action_work',        value: d.workActions        },
       { key: 'hub_action_personal',    value: d.personalActions    },
       { key: 'hub_cal_events',         value: d.calEvents          },
       { key: 'hub_content_v1',         value: d.contentItems       },
-    ];
+    ].filter(Boolean);
     const { error } = await _sb.from('dashboard_kv').upsert(rows, { onConflict: 'key' });
     if (error) throw error;
     markSynced();
